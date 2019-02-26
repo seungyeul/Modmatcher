@@ -8,7 +8,7 @@ R CMD INSTALL Modmatcher_0.1.0.tar.gz
 R/modmatcher.R
 
 ### Example datasets including gender information
-data/
+data/*.rda
 
 ### Vignette link
 https://rpubs.com/seungyeul/471026
