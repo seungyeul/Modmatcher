@@ -1,0 +1,15 @@
+Package: Modmatcher
+Type: Package
+Title: An implementatino of the automated sample alignment
+Version: 0.1.0
+Author: Seungyeul Yoo, Eunjee Lee, Jun Zhu
+Maintainer: Seungyeul Yoo <seungyeul.yoo@mssm.edu>
+Description: 
+    The package provides a tool of automated sample labeling check.
+Depends:
+License: ??
+Encoding: UTF-8
+LazyData: true
+Suggests: knitr, rmarkdown
+VignetteBuilder: knitr
+NeedsCompilation: no

@@ -43,14 +43,14 @@ cis_pair<-function(data1=mat1,data2=mat2){
 	# Cis gene identification based on correlation test
 	# The two matrix should have the same number of features (i.e genes) and samples
 	com_gene<-rownames(data1)
-  cis_pair<-sapply(seq.int(length(com_gene)),function(i) cor.test(as.numeric(data1[i,]),as.numeric(data2[i,])))
-  cis_rho<-sapply(seq.int(length(com_gene)), function(i) cis_pair[,i]$estimate)
-  cis_pva<-sapply(seq.int(length(com_gene)), function(i) cis_pair[,i]$p.value)
-  cis_qva<-p.adjust(cis_pva,method="BH",n=length(cis_pva))
-  cis_tab<-cbind(com_gene,cis_rho,cis_pva,cis_qva)
-  colnames(cis_tab)<-c("GeneName","rho","p-value","q-value")
-  cis_tab<-cis_tab[sort.list(cis_qva),]
-  return(cis_tab)
+	cis_pair<-sapply(seq.int(length(com_gene)),function(i) cor.test(as.numeric(data1[i,]),as.numeric(data2[i,])))
+	cis_rho<-sapply(seq.int(length(com_gene)), function(i) cis_pair[,i]$estimate)
+	cis_pva<-sapply(seq.int(length(com_gene)), function(i) cis_pair[,i]$p.value)
+	cis_qva<-p.adjust(cis_pva,method="BH",n=length(cis_pva))
+	cis_tab<-cbind(com_gene,cis_rho,cis_pva,cis_qva)
+	colnames(cis_tab)<-c("GeneName","rho","p-value","q-value")
+	cis_tab<-cis_tab[sort.list(cis_qva),]
+	return(cis_tab)
 }
 
 
@@ -58,10 +58,10 @@ sam_score<-function(data1=mat1,data2=mat2,type1="Type1",type2="Type2"){
 	# Generation of sample similarity score based on ranked-transformed values of selected cis-genes.
 	# The direction of the correlation should be considered before calling the function
 	rdata1<-t(apply(data1,1,function(x) rank(x,na.last="keep")))
-  rdata2<-t(apply(data2,1,function(x) rank(x,na.last="keep")))
-  score<-t(sapply(seq.int(dim(rdata1)[[2]]), function(i) sapply(seq.int(dim(rdata2)[[2]]), function(j) cor.test(as.numeric(rdata1[,i]),as.numeric(rdata2[,j]),use="pairwise.complete.obs")$estimate)))
-  rownames(score)<-colnames(data1)
-  colnames(score)<-colnames(data2)
+	rdata2<-t(apply(data2,1,function(x) rank(x,na.last="keep")))
+	score<-t(sapply(seq.int(dim(rdata1)[[2]]), function(i) sapply(seq.int(dim(rdata2)[[2]]), function(j) cor.test(as.numeric(rdata1[,i]),as.numeric(rdata2[,j]),use="pairwise.complete.obs")$estimate)))
+	rownames(score)<-colnames(data1)
+	colnames(score)<-colnames(data2)
 	return(score)
 }
 
@@ -88,62 +88,62 @@ self_align<-function(score=mat,type1="Type1",type2="Type2",top=5,rnd=1){
         # Initial alignment for the pre-aligned pairs
 	sam1<-rownames(score)
 	sam2<-colnames(score)
-    diff1<-rep(0,length(sam1))
-    diff2<-diff1
-    secd1<-rep(0,length(sam2))
-    secd2<-secd1
+	diff1<-rep(0,length(sam1))
+	diff2<-diff1
+	secd1<-rep(0,length(sam2))
+	secd2<-secd1
 	self_tab<-matrix(NA,nr=length(sam1),nc=8)
 	colnames(self_tab)<-c("Sample1","Sample2","selfscore","cut1","cut2","rank1","rank2","Note")
 	for(i in 1:length(sam1)){
-    name1<-sam1[i]
-    name2<-sam2[i]
-    self<-score[i,i]
-    row_scr<-as.numeric(score[i,])
+		name1<-sam1[i]
+		name2<-sam2[i]
+		self<-score[i,i]
+		row_scr<-as.numeric(score[i,])
 		scr1<-sort(row_scr,decreasing=T)
-    mean1<-mean(scr1)
-    sec1<-scr1[2]
-    diff1[i]<-self-mean1
-    secd1[i]<-self-sec1
-    cut1<-scr1[topN1]
+		mean1<-mean(scr1)
+		sec1<-scr1[2]
+		diff1[i]<-self-mean1
+		secd1[i]<-self-sec1
+		cut1<-scr1[topN1]
 		rank1<-which(scr1==self)
 		col_scr<-as.numeric(score[,i])
-    scr2<-sort(col_scr,decreasing=T)
-    mean2<-mean(scr2)
-    sec2<-scr2[2]
-    cut2<-scr2[topN2]
+		scr2<-sort(col_scr,decreasing=T)
+		mean2<-mean(scr2)
+		sec2<-scr2[2]
+ 		cut2<-scr2[topN2]
 		rank2<-which(scr2==self)
-    diff2[i]<-self-mean2
-    secd2[i]<-self-sec2
-    sam_col<-rep("grey",length(sam1))
-    sam_col[i]<-"red"
-    if(self>=cut1&self>=cut2){
-      note<-"Ok"
-    } else if(self>=cut1|self>=cut2){
-      note<-"Poor"
-    } else {
-      note<-"No"
+		diff2[i]<-self-mean2
+		secd2[i]<-self-sec2
+		sam_col<-rep("grey",length(sam1))
+		sam_col[i]<-"red"
+		if(self>=cut1&self>=cut2){
+			note<-"Ok"
+		} else if(self>=cut1|self>=cut2){
+			note<-"Poor"
+		} else {
+			note<-"No"
 			row_ind<-which(row_scr==max(scr1))
 			col_ind<-which(col_scr==max(scr2))
 			sam_ind<-c(row_ind,col_ind)
 			no_sam<-c(sam1[row_ind],sam2[col_ind])
 			sam_col[sam_ind]<-"blue"
-    }
-    pdf(paste(type1,"_",type2,"_Round_",rnd,"/Pairwise/",name1,"_",name2,".pdf",sep=""))
-      plot(row_scr,col_scr,col=sam_col,xlab=paste(type1,":",name1," vs ",type2,":All",sep=""),ylab=paste(type1,":All vs ",type2,":",name2,sep=""),main=paste("Data1:",name1,"- Data2:",name2))
-      if(note=="No"){
-		    text(row_scr[sam_ind]-0.1,col_scr[sam_ind]-0.02,no_sam)
-			}
+		}
+		pdf(paste(type1,"_",type2,"_Round_",rnd,"/Pairwise/",type1,"_",name1,"_",type2,"_",name2,".pdf",sep=""))
+      		plot(row_scr,col_scr,col=sam_col,xlab=paste(type1,": ",name1," -> ",type2,": All",sep=""),ylab=paste(type2,": ",name2," -> ",type2,": All",sep=""),main=paste(type1,": ",name1," - ",type2,": ",name2,sep=""))
+		if(note=="No"){
+			text(row_scr[sam_ind]-0.1,col_scr[sam_ind]-0.02,no_sam)
+		}
 		dev.off()
 		self_tab[i,]<-c(name1,name2,self,cut1,cut2,rank1,rank2,note)
-  }
-  pdf(paste(type1,"_",type2,"_Round_",rnd,"/Compare_self_score_mean.pdf",sep=""))
-  plot(diff1,diff2,xlab=paste(type1,"->",type2),ylab=paste(type2,"->",type1),main="Self_score - mean(other)",cex.axis=1.2,cex.lab=1.5,cex.main=2)
-  abline(0,1,lty=2,col="red")
-  dev.off()
-  pdf(paste(type1,"_",type2,"_Round_",rnd,"/Compare_self_score_second_best.pdf",sep=""))
-  plot(secd1,secd2,xlab=paste(type1,"->",type2),ylab=paste(type2,"->",type1),main="Self_score - second_best_score",cex.axis=1.2,cex.lab=1.5,cex.main=2)
-  abline(0,1,lty=2,col="red")
-  dev.off()
+	}
+	pdf(paste(type1,"_",type2,"_Round_",rnd,"/Compare_self_score_mean.pdf",sep=""))
+	plot(diff1,diff2,xlab=paste(type1,"->",type2),ylab=paste(type2,"->",type1),main="Self_score - mean(other)",cex.axis=1.2,cex.lab=1.5,cex.main=2)
+	abline(0,1,lty=2,col="red")
+	dev.off()
+	pdf(paste(type1,"_",type2,"_Round_",rnd,"/Compare_self_score_second_best.pdf",sep=""))
+	plot(secd1,secd2,xlab=paste(type1,"->",type2),ylab=paste(type2,"->",type1),main="Self_score - second_best_score",cex.axis=1.2,cex.lab=1.5,cex.main=2)
+	abline(0,1,lty=2,col="red")
+	dev.off()
 	return(self_tab)
 }
 
@@ -175,7 +175,8 @@ pairwise_alignment<-function(data1=mat1,data2=mat2,type1="Type1",type2="Type2",r
 	write.table(cis_tab,paste(type1,"_",type2,"_Round_",rnd,"/",type1,"_",type2,"_cis_pairs.txt",sep=""),row.names=F,col.names=T,quote=F,sep="\t")
 
 	# Choose cis-gene up to 1000 or feautures more than 4 times of samples or
-	sel_num<-min(1000,10*min(dim(data1)[[2]],dim(data2)[[2]]),length(which(as.numeric(cis_tab[,4])<0.01)))
+	sel_num<-max(2.5*min(dim(data1)[[2]],dim(data2)[[2]]),min(1000,4*min(dim(data1)[[2]],dim(data2)[[2]]),length(which(as.numeric(cis_tab[,4])<0.01)),length(which(as.numeric(cis_tab[,2])>0.4))))
+	print(paste("Round",rnd,":",sel_num,"selected_cis_genes"))
 	cis_tab<-cis_tab[1:sel_num,]
 	cis_dir<-as.numeric(cis_tab[,2])
 	cis_gene<-as.character(cis_tab[,1])
@@ -200,6 +201,7 @@ pairwise_alignment<-function(data1=mat1,data2=mat2,type1="Type1",type2="Type2",r
 
 	# self_alignment
 	self_tab<-self_align(score[1:length(sam1),1:length(sam2)],type1,type2,5,rnd)
+	write.table(self_tab,paste(type1,"_",type2,"_Round_",rnd,"/",type1,"_",type2,"_self_align.txt",sep=""),row.names=F,col.names=T,quote=F,sep="\t")
 	ok_sam<-self_tab[which(self_tab[,8]=="Ok"),]
 	sam1_ok<-ok_sam[,1]
 	sam2_ok<-ok_sam[,2]
@@ -233,14 +235,14 @@ pairwise_alignment<-function(data1=mat1,data2=mat2,type1="Type1",type2="Type2",r
 	final_tab<-cbind(final1,final2,flag)
 	colnames(final_tab)<-c(type1,type2,"Note")
 	write.table(final_tab,paste(type1,"_",type2,"_Round_",rnd,"/Alignment_pairs.txt",sep=""),row.names=F,col.names=T,quote=F,sep="\t")
-	token<-ifelse(length(final_pair)==length(intersect(final_pair,sam_pair)),1,0)
+	token<-ifelse(length(sam_pair)==length(intersect(final_pair,sam_pair)),1,0)
 	return(token)
 }
 
 
 quality_evaluation<-function(data1=mat1,data2=mat2,type1="Type1",type2="Type2",rnd=1){
-  # Draw plot for alignment quality
-  if(rnd==1){
+	# Draw plot for alignment quality
+	if(rnd==1){
 		stop("Round should be greater than 1")
 	}
 	num_sam<-rep(0,rnd)
@@ -249,12 +251,12 @@ quality_evaluation<-function(data1=mat1,data2=mat2,type1="Type1",type2="Type2",r
 		cis_tab<-read.table(paste(type1,"_",type2,"_Round_",i,"/",type1,"_",type2,"_cis_pairs.txt",sep=""),header=T,sep="\t")
 		num_cis[i]<-length(which(cis_tab$q.value<0.01))
 		if(i == 1){
-      num_sam[i]<-length(intersect(colnames(data1),colnames(data2)))
+			num_sam[i]<-length(intersect(colnames(data1),colnames(data2)))
 			cis_first<-cis_tab
-    } else {
-      pre_align<-read.table(paste(type1,"_",type2,"_Round_",i,"/Alignment_pairs.txt",sep=""),header=T,sep="\t")
-      num_sam[i]<-dim(pre_align)[[1]]
-    }
+		} else {
+			pre_align<-read.table(paste(type1,"_",type2,"_Round_",(i-1),"/Alignment_pairs.txt",sep=""),header=T,sep="\t")
+			num_sam[i]<-dim(pre_align)[[1]]
+		}
 	}
 	num_sam[rnd]<-num_sam[rnd-1]
 	num_cis[rnd]<-num_cis[rnd-1]
@@ -273,7 +275,7 @@ quality_evaluation<-function(data1=mat1,data2=mat2,type1="Type1",type2="Type2",r
 	mtext("Numbe of aligned sample",col="blue",side=2,line=4)
 	axis(2,col="blue",col.axis="blue",las=0)
 
-	axis(1,1:3,labels=as.character(c(0:(rnd-1))))
+	axis(1,1:rnd,labels=as.character(c(0:(rnd-1))))
 	mtext("Alignment round",side=1,col="black",line=2.5)
 	dev.off()
 
